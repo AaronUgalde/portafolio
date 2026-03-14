@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aarón Ugalde Téllez — AI Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f2eb;
+    --accent: #c84b2f;
+    --accent2: #2563c8;
+    --muted: #8a8578;
+    --line: rgba(10,10,15,0.12);
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', serif;
+    --sans: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CURSOR */
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, opacity 0.2s;
+    mix-blend-mode: multiply;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s cubic-bezier(.23,1,.32,1), opacity 0.3s;
+    mix-blend-mode: multiply;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* GRID LINES */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(245,242,235,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-logo {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+    padding-top: 100px;
+    padding-bottom: 80px;
+    border-bottom: 1px solid var(--line);
+    gap: 60px;
+    position: relative;
+  }
+
+  .hero-left { padding-top: 60px; }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 32px;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-name {
+    font-family: var(--serif);
+    font-size: clamp(56px, 7vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .hero-name em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-family: var(--sans);
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 40px;
+    color: var(--muted);
+  }
+
+  .hero-desc {
+    max-width: 480px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 48px;
+    font-size: 13px;
+  }
+
+  .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  .btn-primary {
+    padding: 14px 28px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+
+  .btn-ghost {
+    padding: 13px 28px;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+  /* HERO RIGHT */
+  .hero-right {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: flex-end;
+  }
+
+  .hero-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    width: 100%;
+    max-width: 420px;
+  }
+  .hero-stat {
+    background: var(--paper);
+    padding: 28px 24px;
+    transition: background 0.2s;
+  }
+  .hero-stat:hover { background: var(--ink); color: var(--paper); }
+  .hero-stat:hover .stat-label { color: rgba(245,242,235,0.5); }
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 42px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-num em { font-style: normal; color: var(--accent); }
+  .hero-stat:hover .stat-num em { color: #f88; }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  .hero-scroll {
+    align-self: flex-start;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-scroll::after {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: var(--muted);
+    animation: scroll-line 1.5s ease-in-out infinite;
+  }
+  @keyframes scroll-line {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.4); opacity: 0.4; }
+  }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+    background: var(--ink);
+    position: relative;
+    z-index: 10;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marquee 25s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--paper);
+    padding: 0 32px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .marquee-item.accent { color: var(--accent); opacity: 1; }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* SECTION TITLES */
+  .section {
+    padding: 120px 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    z-index: 10;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 80px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .section-title em { font-style: italic; color: var(--accent); }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+    align-self: center;
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .skill-card {
+    background: var(--paper);
+    padding: 36px 28px;
+    transition: background 0.25s, color 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.4s cubic-bezier(.23,1,.32,1);
+  }
+  .skill-card:hover::before { width: 100%; }
+  .skill-card:hover { background: #fff; }
+  .skill-title {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    background: rgba(10,10,15,0.07);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .skill-card:hover .tag { background: rgba(200,75,47,0.1); color: var(--accent); }
+
+  /* PROJECTS */
+  .projects-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .project-card {
+    background: var(--paper);
+    padding: 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: start;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s cubic-bezier(.23,1,.32,1);
+  }
+  .project-card:hover::after { transform: scaleY(1); }
+  .project-card:hover { background: #fff; }
+
+  .project-num {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: block;
+  }
+  .project-num.date {
+    color: var(--accent2);
+  }
+  .project-title {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .project-subtitle {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .project-desc {
+    color: #555;
+    line-height: 1.8;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .project-metrics {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .metric {
+    text-align: center;
+  }
+  .metric-val {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .metric-lbl {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 4px;
+  }
+  .project-link {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--ink);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .project-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .project-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+    min-width: 160px;
+  }
+  .project-tech-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: right;
+  }
+  .tech-item {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .project-card:hover .tech-item { color: var(--ink); }
+
+  .project-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1.5px solid var(--line);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: var(--sans);
+    font-weight: 700;
+  }
+  .project-badge.featured { border-color: var(--accent); color: var(--accent); }
+
+  /* EDUCATION */
+  .edu-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .edu-main {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 56px;
+  }
+  .edu-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(245,242,235,0.4);
+    margin-bottom: 16px;
+    display: block;
+  }
+  .edu-degree {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .edu-degree em { font-style: italic; color: #f88; }
+  .edu-school {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(245,242,235,0.7);
+    margin-bottom: 32px;
+  }
+  .edu-gpa {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .gpa-num {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 1;
+    color: #f88;
+  }
+  .gpa-max { font-size: 20px; color: rgba(245,242,235,0.4); }
+  .gpa-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,242,235,0.4); }
+
+  .edu-right {
+    background: var(--paper);
+    padding: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .edu-right-title {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .course-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .course-tag {
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .course-tag:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .hackathon-item {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .hackathon-item:last-child { border-bottom: none; }
+  .hackathon-title {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .hackathon-meta { font-size: 12px; color: var(--muted); }
+
+  /* CONTACT */
+  .contact-section {
+    padding: 120px 0;
+    position: relative;
+    z-index: 10;
+    text-align: center;
+  }
+  .contact-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .contact-headline {
+    font-family: var(--serif);
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 48px;
+  }
+  .contact-headline em { font-style: italic; color: var(--accent); }
+  .contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 64px;
+  }
+  .contact-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: color 0.2s;
+  }
+  .contact-link:hover { color: var(--accent); }
+  .contact-link-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .contact-link:hover .contact-link-label { color: var(--accent); }
+  .contact-link-val {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    transition: color 0.2s;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+  }
+  .footer-text { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+  .footer-logo {
+    font-family: var(--serif);
+    font-size: 20px;
+  }
+
+  /* REVEAL ANIMATIONS */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s cubic-bezier(.23,1,.32,1), transform 0.8s cubic-bezier(.23,1,.32,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .container { padding: 0 24px; }
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding-top: 80px; }
+    .hero-right { align-items: flex-start; }
+    .skills-grid { grid-template-columns: 1fr 1fr; }
+    .project-card { grid-template-columns: 1fr; }
+    .project-right { align-items: flex-start; flex-direction: row; }
+    .edu-block { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">AU<span>.</span></div>
+  <div class="nav-links">
+    <a href="#skills">Habilidades</a>
+    <a href="#projects">Proyectos</a>
+    <a href="#experience">Experiencia</a>
+    <a href="#education">Educación</a>
+    <a href="#contact">Contacto</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="container">
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-tag reveal">AI Engineer & Data Scientist</div>
+      <h1 class="hero-name reveal reveal-delay-1">
+        Aarón<br><em>Ugalde</em><br>Téllez
+      </h1>
+      <p class="hero-sub reveal reveal-delay-2">Ingeniería de IA · IPN-ESCOM</p>
+      <p class="hero-desc reveal reveal-delay-3">
+        Estudiante de Ingeniería en Inteligencia Artificial con enfoque en 
+        Data Science y análisis de riesgo financiero. Construyo pipelines de 
+        Machine Learning de extremo a extremo, sistemas NLP y soluciones de 
+        optimización computacional.
+      </p>
+      <div class="hero-ctas reveal reveal-delay-4">
+        <a href="#projects" class="btn-primary">Ver proyectos</a>
+        <a href="mailto:aaronugaldet@gmail.com" class="btn-ghost">Contactar</a>
+      </div>
+    </div>
+
+    <div class="hero-right reveal reveal-delay-2">
+      <div class="hero-stat-grid">
+        <div class="hero-stat">
+          <div class="stat-num">9.1<em>/10</em></div>
+          <div class="stat-label">Promedio GPA</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-num">3<em>+</em></div>
+          <div class="stat-label">Proyectos ML</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-num">100<em>+</em></div>
+          <div class="stat-label">Retos de código</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-num">48<em>h</em></div>
+          <div class="stat-label">Hackathon Siemens</div>
+        </div>
+      </div>
+      <div class="hero-scroll">scroll</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item accent">Python</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Scikit-learn</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Machine Learning</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">NLP</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Random Forest</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Doc2Vec</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Genetic Algorithms</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">FastAPI</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Data Science</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">SQL</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">React</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Tableau</span>
+    <span class="marquee-item">·</span>
+    <!-- duplicate -->
+    <span class="marquee-item accent">Python</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Scikit-learn</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Machine Learning</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">NLP</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Random Forest</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Doc2Vec</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Genetic Algorithms</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">FastAPI</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">Data Science</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">SQL</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item accent">React</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">Tableau</span>
+    <span class="marquee-item">·</span>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Habilidades <em>técnicas</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card reveal">
+        <div class="skill-title">Data Science & AI</div>
+        <p style="font-size:12px;color:#666;line-height:1.7;margin-bottom:4px;">Pipelines ML de producción, modelos de clasificación y clustering avanzado.</p>
+        <div class="skill-tags">
+          <span class="tag">Pandas</span>
+          <span class="tag">Scikit-learn</span>
+          <span class="tag">SMOTE</span>
+          <span class="tag">Doc2Vec</span>
+          <span class="tag">Spacy</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-1">
+        <div class="skill-title">Matemáticas & Estadística</div>
+        <p style="font-size:12px;color:#666;line-height:1.7;margin-bottom:4px;">Modelado de riesgo, pruebas de hipótesis y reducción de dimensionalidad.</p>
+        <div class="skill-tags">
+          <span class="tag">Probabilidad</span>
+          <span class="tag">Algoritmos Genéticos</span>
+          <span class="tag">PCA</span>
+          <span class="tag">ROC-AUC</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-2">
+        <div class="skill-title">Desarrollo de Software</div>
+        <p style="font-size:12px;color:#666;line-height:1.7;margin-bottom:4px;">Desarrollo full-stack, APIs REST, automatización y herramientas de productividad.</p>
+        <div class="skill-tags">
+          <span class="tag">Python</span>
+          <span class="tag">FastAPI</span>
+          <span class="tag">React</span>
+          <span class="tag">Flask</span>
+          <span class="tag">C++</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-3">
+        <div class="skill-title">Herramientas & Visualización</div>
+        <p style="font-size:12px;color:#666;line-height:1.7;margin-bottom:4px;">Visualización de datos, control de versiones y despliegue en Linux.</p>
+        <div class="skill-tags">
+          <span class="tag">Tableau</span>
+          <span class="tag">Power BI</span>
+          <span class="tag">SQL</span>
+          <span class="tag">Git</span>
+          <span class="tag">Docker</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Proyectos <em>destacados</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="projects-grid">
+
+      <!-- Project 1 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">001</span>
+          <h3 class="project-title">Credit Risk Modeling & API Deployment</h3>
+          <p class="project-subtitle">Pipeline ML para Evaluación de Riesgo Financiero</p>
+          <p class="project-desc">
+            Sistema de producción que procesa 32,581 solicitudes de crédito con un pipeline automatizado 
+            que genera 30 nuevas características. Incluye transformadores Scikit-learn personalizados para 
+            manejo de valores faltantes y outliers. Clasificador Random Forest optimizado con RandomizedSearchCV.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">32K+</div>
+              <span class="metric-lbl">Registros procesados</span>
+            </div>
+            <div class="metric">
+              <div class="metric-val">30</div>
+              <span class="metric-lbl">Features generadas</span>
+            </div>
+            <div class="metric">
+              <div class="metric-val">↑</div>
+              <span class="metric-lbl">ROC-AUC</span>
+            </div>
+          </div>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge featured">Featured</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Python</span>
+            <span class="tech-item">Scikit-learn</span>
+            <span class="tech-item">FastAPI</span>
+            <span class="tech-item">Random Forest</span>
+            <span class="tech-item">SMOTE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">002</span>
+          <h3 class="project-title">Automated Financial News Classification</h3>
+          <p class="project-subtitle">NLP para Análisis de Sentimiento de Mercado</p>
+          <p class="project-desc">
+            Pipeline de clasificación de texto para noticias económicas usando Doc2Vec y KNN. 
+            Resolvió desbalance severo de clases con estrategia híbrida NearMiss + SMOTE. 
+            K-Means clustering para identificar patrones de sentimiento en textos financieros.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">92.5%</div>
+              <span class="metric-lbl">Accuracy final</span>
+            </div>
+            <div class="metric">
+              <div class="metric-val">+14.5</div>
+              <span class="metric-lbl">pp de mejora</span>
+            </div>
+          </div>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">NLP</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Doc2Vec</span>
+            <span class="tech-item">Spacy</span>
+            <span class="tech-item">K-Means</span>
+            <span class="tech-item">SMOTE</span>
+            <span class="tech-item">NearMiss</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">003</span>
+          <h3 class="project-title">Dimensionality Reduction with Genetic Algorithms</h3>
+          <p class="project-subtitle">Investigación en Optimización Computacional</p>
+          <p class="project-desc">
+            Algoritmo Genético desarrollado desde cero para optimizar la selección de características 
+            en datasets de alta dimensionalidad. Redujo el vector de 100 a 47 features mientras 
+            mejoraba simultáneamente el F1-Score.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">53%</div>
+              <span class="metric-lbl">Reducción features</span>
+            </div>
+            <div class="metric">
+              <div class="metric-val">+5.5%</div>
+              <span class="metric-lbl">Mejora F1-Score</span>
+            </div>
+          </div>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">Research</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Python</span>
+            <span class="tech-item">Genetic Algorithms</span>
+            <span class="tech-item">Feature Selection</span>
+            <span class="tech-item">Numpy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 4 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">004</span>
+          <h3 class="project-title">Metro Delay Predictor — Siemens Hackathon</h3>
+          <p class="project-subtitle">Predicción de Movilidad Urbana en Tiempo Real</p>
+          <p class="project-desc">
+            Sistema de predicción de retrasos del metro en tiempo real desarrollado en 48 horas durante 
+            el hackathon de Siemens Mobility & AI. Integración de múltiples fuentes de datos para entrenar 
+            algoritmos predictivos. MVP funcional presentado ante ingenieros de Siemens.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">48h</div>
+              <span class="metric-lbl">Tiempo de desarrollo</span>
+            </div>
+          </div>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">Hackathon</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Python</span>
+            <span class="tech-item">ML</span>
+            <span class="tech-item">Data Integration</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 5 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">005</span>
+          <h3 class="project-title">Food Delivery Data Analysis</h3>
+          <p class="project-subtitle">Pipeline de Análisis Exploratorio & Dashboard</p>
+          <p class="project-desc">
+            Análisis completo de una plataforma de entregas: limpieza de datos, ingeniería de características 
+            (fórmula Haversine para distancias, parsing de fechas), detección de outliers e imputación de datos 
+            faltantes. Generación de métricas de rendimiento por ciudad, conductor y hora del día con visualizaciones 
+            interactivas en Plotly.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">6+</div>
+              <span class="metric-lbl">Dashboards generados</span>
+            </div>
+            <div class="metric">
+              <div class="metric-val">30 min</div>
+              <span class="metric-lbl">On-time threshold</span>
+            </div>
+          </div>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">Data Analysis</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Python</span>
+            <span class="tech-item">Pandas</span>
+            <span class="tech-item">Plotly</span>
+            <span class="tech-item">NumPy</span>
+            <span class="tech-item">KaggleHub</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 6 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">006</span>
+          <h3 class="project-title">Student Depression Classifier</h3>
+          <p class="project-subtitle">IA para el Bien Social — Salud Mental</p>
+          <p class="project-desc">
+            Clasificador NLP para detectar señales tempranas de depresión en escritura de estudiantes. 
+            EDA extensivo y limpieza de datos para identificar patrones lingüísticos en datasets psicológicos. 
+            Alta precisión utilizando Doc2Vec y Scikit-learn con enfoque en resultados interpretables.
+          </p>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">AI for Good</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Doc2Vec</span>
+            <span class="tech-item">Scikit-learn</span>
+            <span class="tech-item">Spacy</span>
+            <span class="tech-item">EDA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 7 -->
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num">007</span>
+          <h3 class="project-title">ARU Task Manager</h3>
+          <p class="project-subtitle">Aplicación Web de Gestión de Tareas</p>
+          <p class="project-desc">
+            Aplicación de gestión de tareas con funcionalidad CRUD completa (Create, Read, Update, Delete). 
+            Enfoque en manejo de estado y diseño de UI intuitivo, demostrando capacidad para construir 
+            herramientas de productividad centradas en el usuario.
+          </p>
+          <a href="https://github.com/AaronUgalde" target="_blank" class="project-link">
+            Ver en GitHub →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge">Web App</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">React</span>
+            <span class="tech-item">JavaScript</span>
+            <span class="tech-item">State Management</span>
+            <span class="tech-item">UI/UX</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section class="section" id="experience">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Experiencia <em>profesional</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card reveal">
+        <div>
+          <span class="project-num" style="color:var(--accent2)">Ene 2024 — Presente</span>
+          <h3 class="project-title">Freelance Full Stack Developer</h3>
+          <p class="project-subtitle">Ingeniería de Software · Remoto</p>
+          <p class="project-desc">
+            Solución de automatización personalizada para cliente corporativo que reduce en un 40% 
+            el tiempo de captura manual en el proceso de generación de cotizaciones. Módulo de parseo 
+            de Excel para importación masiva de productos con un solo clic, llenando automáticamente 
+            formularios PDF dinámicos. Colaboración directa con stakeholders para levantar requerimientos 
+            e iterar sobre el UI/UX.
+          </p>
+          <div class="project-metrics">
+            <div class="metric">
+              <div class="metric-val">40%</div>
+              <span class="metric-lbl">Reducción de tiempo</span>
+            </div>
+          </div>
+          <a href="https://github.com/naomirobles/cotizador_final" target="_blank" class="project-link">
+            Ver repositorio →
+          </a>
+        </div>
+        <div class="project-right">
+          <span class="project-badge featured">Profesional</span>
+          <div class="project-tech-stack">
+            <span class="tech-item">Python</span>
+            <span class="tech-item">Excel Parsing</span>
+            <span class="tech-item">PDF Forms</span>
+            <span class="tech-item">UI/UX</span>
+            <span class="tech-item">Automatización</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section class="section" id="education">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Formación <em>académica</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="edu-block reveal">
+      <div class="edu-main">
+        <span class="edu-label">Grado en curso</span>
+        <h3 class="edu-degree">Ingeniería en <em>Inteligencia Artificial</em></h3>
+        <p class="edu-school">Instituto Politécnico Nacional — ESCOM<br>Ciudad de México · Graduación: Julio 2026</p>
+        <div class="edu-gpa">
+          <span class="gpa-num">9.1</span>
+          <span class="gpa-max">/10.0</span>
+        </div>
+        <span class="gpa-label">Promedio acumulado</span>
+      </div>
+      <div class="edu-right">
+        <div>
+          <div class="edu-right-title">Materias relevantes</div>
+          <div class="course-list">
+            <span class="course-tag">Machine Learning</span>
+            <span class="course-tag">NLP</span>
+            <span class="course-tag">Análisis Estadístico</span>
+            <span class="course-tag">Estructuras de Datos</span>
+            <span class="course-tag">Computación Evolutiva</span>
+            <span class="course-tag">Algoritmos Avanzados</span>
+            <span class="course-tag">Sistemas Operativos</span>
+            <span class="course-tag">Desarrollo Web</span>
+          </div>
+        </div>
+        <div>
+          <div class="edu-right-title">Hackathons & Competencias</div>
+          <div class="hackathon-item">
+            <div class="hackathon-title">Siemens Mobility & AI Hackathon 2025</div>
+            <div class="hackathon-meta">48 horas · Predictor de retrasos de metro · MVP presentado</div>
+          </div>
+          <div class="hackathon-item">
+            <div class="hackathon-title">Interledger Student Hackathon CDMX 2025</div>
+            <div class="hackathon-meta">Fintech · Protocolo ILP · "Genius Arena" challenge</div>
+          </div>
+          <div class="hackathon-item" style="border-bottom:none">
+            <div class="hackathon-title">Competitive Programming</div>
+            <div class="hackathon-meta">100+ problemas · LeetCode & Codeforces · C++ y Python</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div class="reveal">
+    <p class="contact-eyebrow">Disponible para oportunidades</p>
+  </div>
+  <h2 class="contact-headline reveal reveal-delay-1">
+    Hablemos de<br><em>tu proyecto</em>
+  </h2>
+  <div class="contact-links reveal reveal-delay-2">
+    <a href="mailto:aaronugaldet@gmail.com" class="contact-link">
+      <span class="contact-link-label">Email</span>
+      <span class="contact-link-val">aaronugaldet@gmail.com</span>
+    </a>
+    <a href="tel:+5255414562290" class="contact-link">
+      <span class="contact-link-label">Teléfono</span>
+      <span class="contact-link-val">+52 55 4145 6229</span>
+    </a>
+    <a href="https://linkedin.com/in/ugalde-tellez-aaron" target="_blank" class="contact-link">
+      <span class="contact-link-label">LinkedIn</span>
+      <span class="contact-link-val">/in/ugalde-tellez-aaron</span>
+    </a>
+    <a href="https://github.com/AaronUgalde" target="_blank" class="contact-link">
+      <span class="contact-link-label">GitHub</span>
+      <span class="contact-link-val">AaronUgalde</span>
+    </a>
+  </div>
+  <a href="mailto:aaronugaldet@gmail.com" class="btn-primary reveal reveal-delay-3" style="font-size:14px;padding:18px 40px;">
+    Enviar mensaje →
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-text">© 2025 Aarón Ugalde Téllez · Ciudad de México</span>
+  <span class="footer-logo">AU.</span>
+  <span class="footer-text">Ingeniería en IA · IPN-ESCOM</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 5 + 'px';
+    cursor.style.top = my - 5 + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 18 + 'px';
+    ring.style.top = ry - 18 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'scale(2.5)';
+      ring.style.transform = 'scale(1.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'scale(1)';
+      ring.style.transform = 'scale(1)';
+    });
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Initial hero reveal
+  setTimeout(() => {
+    document.querySelectorAll('.hero .reveal').forEach(el => el.classList.add('visible'));
+  }, 100);
+</script>
+</body>
+</html>
